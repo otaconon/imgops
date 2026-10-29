@@ -1,5 +1,4 @@
 from imgops import engine
-from imgops.engine import cl_ops
 import sdl2 as sdl
 from OpenGL import GL as gl
 import pyopencl as cl
@@ -10,14 +9,14 @@ def main():
     kernel_src = f.read()
   
   with (engine.Window("App", 900, 900) as win, engine.Renderer(win) as renderer):
-    cl_ctx = cl_ops.create_ctx()
-    renderer.set_cl_context(cl_ctx)
-    assert renderer.cl_queue != None
+    win.set_gl_ctx(renderer.gl_ctx)
+    cl_ctx = engine.CLContext()
+    cl_ctx.set_texture(renderer.tex_id)
     
     running = True
     event = sdl.SDL_Event()
     
-    prg = cl.Program(cl_ctx, kernel_src).build()
+    prg = cl.Program(cl_ctx.ctx, kernel_src).build()
     kernel = prg.process_image
     
     #mf = cl.mem_flags
@@ -28,10 +27,10 @@ def main():
         if event.type == sdl.SDL_QUIT: running = False
 
       gl.glFinish()
-      cl.enqueue_acquire_gl_objects(renderer.cl_queue, [renderer.cl_tex])
-      kernel(renderer.cl_queue, renderer.dim, None, renderer.cl_tex)
-      cl.enqueue_release_gl_objects(renderer.cl_queue, [renderer.cl_tex])
-      renderer.cl_queue.finish()
+      cl.enqueue_acquire_gl_objects(cl_ctx.queue, [cl_ctx.tex])
+      kernel(cl_ctx.queue, renderer.dim, None, cl_ctx.tex)
+      cl.enqueue_release_gl_objects(cl_ctx.queue, [cl_ctx.tex])
+      cl_ctx.queue.finish()
 
       gl.glBlitNamedFramebuffer(
         renderer.fbo_id.value, 0,
