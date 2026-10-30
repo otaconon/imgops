@@ -17,4 +17,4 @@ class CLContext:
     self.queue = cl.CommandQueue(self.ctx)
     
   def set_texture(self, tex_id):
-    self.tex = cl.GLTexture(self.ctx, cl.mem_flags.READ_WRITE, gl.GL_TEXTURE_2D, 0, int(tex_id.value), 2)
+    self.tex = cl.GLTexture(self.ctx, cl.mem_flags.READ_WRITE, gl.GL_TEXTURE_2D, 0, int(tex_id.value), 2) #type: ignore
